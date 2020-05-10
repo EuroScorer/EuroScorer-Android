@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">EuroScorer</string>
+    <string name="app_title">EuroScorer 2020</string>
+    <string name="phone_number_question">Please enter your phone number</string>
+    <string name="access_code_question">Please enter the code received</string>
+    <string name="identified">Identified</string>
+    <string name="error_identification">Identification error</string>
+    <string name="error_identification_bad_format">Bad phone number format</string>
+    <string name="error_identification_bad_code">Wrong verification code</string>
+    <string name="send_label">Send</string>
+    <string name="send_vote_label">Send vote</string>
+
+    <string name="backend_url">https://us-central1-eurovision2020-ea486.cloudfunctions.net/api</string>
+    <string name="get_songs">/v1/songs</string>
+
+    <string name="YOUTUBE_API_KEY">AIzaSyC1rEEbDTUfwblnIoeNjkWTWe_bXRF9_II</string>
+    <string name="play_button_label">Play video</string>
+    <string name="song_details_minus">-</string>
+    <string name="song_details_plus">+</string>
+    <string name="total_counter_label">%1$s vote%2$s remaining</string>
+    <string name="vote_saved">Your vote is saved. Thanks!</string>
+</resources>
