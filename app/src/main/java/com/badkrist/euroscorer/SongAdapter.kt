@@ -8,6 +8,7 @@ import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.badkrist.euroscorer.model.Song
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.song_item.view.*
 
 class SongAdapter(private val context: Context,
                   private val dataSource: ArrayList<Song>) : BaseAdapter() {
@@ -30,13 +31,13 @@ class SongAdapter(private val context: Context,
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 
         val rowView = inflater.inflate(R.layout.song_item, parent, false)
-        val songNameView = rowView.findViewById<TextView>(R.id.song_item_songname)
-        val countryNameView = rowView.findViewById<TextView>(R.id.song_item_countryname)
-        val voteSummaryView = rowView.findViewById<TextView>(R.id.song_item_vote_summary)
-        val playButton = rowView.findViewById<Button>(R.id.song_details_play_button)
-        val minusButton = rowView.findViewById<Button>(R.id.song_details_minus)
-        val plusButton = rowView.findViewById<Button>(R.id.song_details_plus)
-        val voteCounter = rowView.findViewById<TextView>(R.id.song_details_vote)
+        val songNameView =  rowView.song_item_songname
+        val countryNameView = rowView.song_item_countryname
+        val voteSummaryView = rowView.song_item_vote_summary
+        val playButton = rowView.song_details_play_button
+        val minusButton = rowView.song_details_minus
+        val plusButton = rowView.song_details_plus
+        val voteCounter = rowView.song_details_vote
         val song = getItem(position) as Song
 
         songNameView.text = song.title
@@ -49,7 +50,7 @@ class SongAdapter(private val context: Context,
             (context as MainActivity).startVideoPlayer(stringArray.get(stringArray.size - 1))
         }
         if((context as MainActivity).getUserCountryCode().equals(song.country!!.countryCode)) {
-            rowView.findViewById<LinearLayout>(R.id.song_details_vote_layout).visibility = View.INVISIBLE
+            rowView.song_details_vote_layout.visibility = View.INVISIBLE
             voteSummaryView.visibility = View.INVISIBLE
         } else {
             minusButton.isEnabled = song.vote > 0
@@ -78,7 +79,7 @@ class SongAdapter(private val context: Context,
             .load(song.country!!.flag)
             .resize(50, 50)
             .centerCrop()
-            .into(rowView.findViewById<ImageView>(R.id.song_item_flag))
+            .into(rowView.song_item_flag)
 
         rowView.tag = position
         rowView.setOnClickListener {
@@ -90,9 +91,9 @@ class SongAdapter(private val context: Context,
             notifyDataSetChanged()
         }
         if(selectedPosition == position)
-            rowView.findViewById<ConstraintLayout>(R.id.song_details_layout).visibility = View.VISIBLE
+            rowView.song_details_layout.visibility = View.VISIBLE
         else
-            rowView.findViewById<ConstraintLayout>(R.id.song_details_layout).visibility = View.GONE
+            rowView.song_details_layout.visibility = View.GONE
         return rowView
     }
 }
