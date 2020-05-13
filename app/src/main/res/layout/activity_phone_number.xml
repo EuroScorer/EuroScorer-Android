@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <EditText
-        android:id="@+id/editText_phoneNumber"
+        android:id="@+id/phoneNumberEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -17,7 +17,7 @@
         android:ems="10"
         android:inputType="phone"
         android:labelFor="@id/textView_phoneNumberQuestion"
-        app:layout_constraintBottom_toTopOf="@+id/button_sendPhoneNumber"
+        app:layout_constraintBottom_toTopOf="@+id/sendPhoneNumberButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView_phoneNumberQuestion" />
@@ -32,14 +32,14 @@
         android:layout_marginBottom="16dp"
         android:text="@string/phone_number_question"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        app:layout_constraintBottom_toTopOf="@+id/editText_phoneNumber"
+        app:layout_constraintBottom_toTopOf="@+id/phoneNumberEditText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="@string/phone_number_question" />
 
     <Button
-        android:id="@+id/button_sendPhoneNumber"
+        android:id="@+id/sendPhoneNumberButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -51,6 +51,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText_phoneNumber"
+        app:layout_constraintTop_toBottomOf="@+id/phoneNumberEditText"
         tools:text="@string/send_label" />
 </androidx.constraintlayout.widget.ConstraintLayout>

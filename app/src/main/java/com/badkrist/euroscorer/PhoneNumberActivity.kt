@@ -6,8 +6,6 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
@@ -16,11 +14,13 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import java.util.concurrent.TimeUnit
+import kotlinx.android.synthetic.main.activity_phone_number.*
+import kotlinx.android.synthetic.main.activity_verification_code.*
 
 
 class PhoneNumberActivity : Activity(){
     val TAG: String = "PhoneNumberActivity"
-    lateinit var phoneNumberEditText: EditText
+
     private var mAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,13 +31,11 @@ class PhoneNumberActivity : Activity(){
         if (user != null) {
             goToNextActivity()
         } else {
-            phoneNumberEditText = findViewById(R.id.editText_phoneNumber)
-            var phoneNumberButton: Button = findViewById(R.id.button_sendPhoneNumber)
             val phoneNumberRegex =
                 "^\\s*(?:\\+?(\\d{1,3}))?[-. (]*(\\d{3})[-. )]*(\\d{3})[-. ]*(\\d{4})(?: *x(\\d+))?\\s*$".toRegex()
             phoneNumberEditText.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable) {
-                    phoneNumberButton.isEnabled =
+                    sendPhoneNumberButton.isEnabled =
                         phoneNumberRegex matches phoneNumberEditText.text.toString()
                 }
 
@@ -48,8 +46,6 @@ class PhoneNumberActivity : Activity(){
                 }
             })
         }
-
-        val sendPhoneNumberButton: Button = findViewById(R.id.button_sendPhoneNumber)
         sendPhoneNumberButton.setOnClickListener { sendPhoneNumber() }
     }
 
@@ -94,8 +90,6 @@ class PhoneNumberActivity : Activity(){
                 // by combining the code with a verification ID.
                 Log.d(TAG, "onCodeSent:$verificationId")
                 setContentView(R.layout.activity_verification_code);
-                var sendVerificationCodeButton: Button = this@PhoneNumberActivity.findViewById(R.id.button_sendVerificationCode)
-                var verificationCodeEditText: EditText = this@PhoneNumberActivity.findViewById(R.id.editText_verificationCode)
 
                 sendVerificationCodeButton.setOnClickListener{
                     val credential =

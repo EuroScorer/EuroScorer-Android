@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <EditText
-        android:id="@+id/editText_verificationCode"
+        android:id="@+id/verificationCodeEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -18,7 +18,7 @@
         android:maxLength="6"
         android:inputType="number"
         android:labelFor="@id/textView_verificationCodeQuestion"
-        app:layout_constraintBottom_toTopOf="@+id/button_sendVerificationCode"
+        app:layout_constraintBottom_toTopOf="@+id/sendVerificationCodeButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView_verificationCodeQuestion" />
@@ -40,7 +40,7 @@
         tools:text="@string/access_code_question" />
 
     <Button
-        android:id="@+id/button_sendVerificationCode"
+        android:id="@+id/sendVerificationCodeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
