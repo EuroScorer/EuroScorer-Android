@@ -2,7 +2,6 @@ package com.badkrist.euroscorer
 
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.badkrist.euroscorer.model.Song
@@ -19,6 +18,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity()  {
@@ -26,25 +26,14 @@ class MainActivity : AppCompatActivity()  {
     private lateinit var idToken: String
     private lateinit var userCountryCode: String
     var songList: List<Song> = ArrayList();
-
-    private lateinit var songsLayout: ListView
-    private lateinit var totalCounter: TextView
     private var totalCount: Int = 0
-    private lateinit var sendButton: Button
     private lateinit var service: FireBaseServices
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        songsLayout = findViewById(R.id.listview_songs)
-        totalCounter = findViewById(R.id.total_counter)
-        sendButton = findViewById(R.id.send_vote_button)
-        sendButton.setOnClickListener(object: View.OnClickListener{
-            override fun onClick(p0: View?) {
-                sendVote()
-            }
-        })
+        sendButton.setOnClickListener { sendVote() }
         service = Retrofit.Builder()
             .baseUrl("https://us-central1-eurovision2020-ea486.cloudfunctions.net/api/v1/")
             .addConverterFactory(MoshiConverterFactory.create().asLenient())
