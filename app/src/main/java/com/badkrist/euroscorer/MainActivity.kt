@@ -1,11 +1,11 @@
 package com.badkrist.euroscorer
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.badkrist.euroscorer.model.Song
 import com.badkrist.euroscorer.service.FireBaseServices
+import com.badkrist.euroscorer.utils.Utils
 import com.google.android.youtube.player.YouTubeStandalonePlayer
 import com.google.firebase.auth.FirebaseAuth
 import okhttp3.MediaType
@@ -41,12 +41,20 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             .build()
             .create(FireBaseServices::class.java)
 
-        sendButton.setOnClickListener { sendVote() }
+        sendButton.setOnClickListener {
+            launch {
+                sendVote()
+                Toast.makeText(this@MainActivity, R.string.vote_saved, Toast.LENGTH_LONG)
+            }
+        }
 
-        refresh()
+        val mUser = FirebaseAuth.getInstance().currentUser
+        userCountryCode = Utils.getCountryCodeFromPhoneNumber(mUser!!.phoneNumber!!)
+
+        refreshSongs()
     }
 
-    fun refresh() = launch {
+    private fun refreshSongs() = launch {
         songList = fetchSongs()
         adaptSongsLayout()
         updateTotalCounter()
@@ -91,7 +99,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         songs
     }
 
-    var cachedToken: String? = null
+    private var cachedToken: String? = null
     private suspend fun fetchToken() : String? {
         return if (cachedToken != null) cachedToken else suspendCoroutine { continuation ->
             FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.addOnCompleteListener {
@@ -101,29 +109,23 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         }
     }
 
-    fun sendVote() {
-        if(cachedToken != null) {
-            var bodyJson = JSONObject()
-            var votes = JSONArray()
-            for (song: Song in songList) {
-                if(song.vote > 0) {
-                    for (x in 1..song.vote) {
-                        votes.put(song.country!!.countryCode!!)
-                    }
-                }
-            }
-            bodyJson.put("votes", votes)
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    var body = RequestBody.create(MediaType.parse("application/json"), bodyJson.toString())
-                    var sendVote = service.sendVote(cachedToken, body)
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, R.string.vote_saved, Toast.LENGTH_LONG)
-                    }
-                } catch (e: Exception) {
-                    Log.i(TAG, e.message)
+    private suspend fun sendVote(): Boolean = withContext(Dispatchers.IO) {
+        val token = fetchToken()
+        if (token == null) {
+            return@withContext false
+        }
+        var bodyJson = JSONObject()
+        var votes = JSONArray()
+        for (song: Song in songList) {
+            if(song.vote > 0) {
+                for (x in 1..song.vote) {
+                    votes.put(song.country!!.countryCode!!)
                 }
             }
         }
+        bodyJson.put("votes", votes)
+        var body = RequestBody.create(MediaType.parse("application/json"), bodyJson.toString())
+        var sendVote = service.sendVote(token, body)
+        return@withContext true
     }
 }
