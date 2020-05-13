@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.constraintlayout.widget.ConstraintLayout
 import com.badkrist.euroscorer.model.Song
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.song_item.view.*
