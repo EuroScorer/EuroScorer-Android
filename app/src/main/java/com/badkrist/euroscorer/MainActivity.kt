@@ -35,19 +35,23 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        sendButton.setOnClickListener { sendVote() }
         service = Retrofit.Builder()
             .baseUrl("https://us-central1-eurovision2020-ea486.cloudfunctions.net/api/v1/")
             .addConverterFactory(MoshiConverterFactory.create().asLenient())
             .build()
             .create(FireBaseServices::class.java)
 
-        launch {
-            songList = fetchSongs()
-            adaptSongsLayout()
-            updateTotalCounter()
-        }
+        sendButton.setOnClickListener { sendVote() }
+
+        refresh()
     }
+
+    fun refresh() = launch {
+        songList = fetchSongs()
+        adaptSongsLayout()
+        updateTotalCounter()
+    }
+
     fun adaptSongsLayout() {
         val adapter = SongAdapter(this, songList as ArrayList)
         songsLayout.adapter = adapter
