@@ -13,7 +13,7 @@
         android:layout_height="56dp"
         android:theme="@style/AppTheme.AppBarOverlay"
         android:background="@color/primary_color"
-        app:layout_constraintBottom_toTopOf="@id/listview_songs"
+        app:layout_constraintBottom_toTopOf="@id/songsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -33,25 +33,25 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toLeftOf="@id/total_counter"/>
+                app:layout_constraintRight_toLeftOf="@id/totalCounter"/>
 
             <TextView
-                android:id="@+id/total_counter"
+                android:id="@+id/totalCounter"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 app:layout_constraintLeft_toRightOf="@+id/title"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toLeftOf="@id/send_vote_button"/>
+                app:layout_constraintRight_toLeftOf="@id/sendButton"/>
 
             <Button
-                android:id="@+id/send_vote_button"
+                android:id="@+id/sendButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:text="@string/send_vote_label"
                 android:enabled="false"
-                app:layout_constraintLeft_toRightOf="@+id/total_counter"
+                app:layout_constraintLeft_toRightOf="@+id/totalCounter"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"/>
@@ -59,7 +59,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <ListView
-        android:id="@+id/listview_songs"
+        android:id="@+id/songsLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
