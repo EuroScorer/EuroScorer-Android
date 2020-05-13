@@ -40,11 +40,7 @@ class MainActivity : AppCompatActivity()  {
         songsLayout = findViewById(R.id.listview_songs)
         totalCounter = findViewById(R.id.total_counter)
         sendButton = findViewById(R.id.send_vote_button)
-        sendButton.setOnClickListener(object: View.OnClickListener{
-            override fun onClick(p0: View?) {
-                sendVote()
-            }
-        })
+        sendButton.setOnClickListener { sendVote() }
         service = Retrofit.Builder()
             .baseUrl("https://us-central1-eurovision2020-ea486.cloudfunctions.net/api/v1/")
             .addConverterFactory(MoshiConverterFactory.create().asLenient())

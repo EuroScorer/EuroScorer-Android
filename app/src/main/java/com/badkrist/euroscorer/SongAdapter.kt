@@ -44,13 +44,10 @@ class SongAdapter(private val context: Context,
         voteSummaryView.text = song.vote.toString() + if(song.vote < 2)  "vote" else "votes"
         voteCounter.text = song.vote.toString()
 
-        playButton.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(p0: View?) {
-                var stringArray: List<String> = song.link!!.split('/')
-                (context as MainActivity).startVideoPlayer(stringArray.get(stringArray.size - 1))
-            }
-
-        })
+        playButton.setOnClickListener {
+            var stringArray: List<String> = song.link!!.split('/')
+            (context as MainActivity).startVideoPlayer(stringArray.get(stringArray.size - 1))
+        }
         if((context as MainActivity).getUserCountryCode().equals(song.country!!.countryCode)) {
             rowView.findViewById<LinearLayout>(R.id.song_details_vote_layout).visibility = View.INVISIBLE
             voteSummaryView.visibility = View.INVISIBLE
@@ -84,16 +81,14 @@ class SongAdapter(private val context: Context,
             .into(rowView.findViewById<ImageView>(R.id.song_item_flag))
 
         rowView.tag = position
-        rowView.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(p0: View?) {
-                if(position == selectedPosition) {
-                    selectedPosition = -1
-                } else {
-                    selectedPosition = position
-                }
-                notifyDataSetChanged()
+        rowView.setOnClickListener {
+            if(position == selectedPosition) {
+                selectedPosition = -1
+            } else {
+                selectedPosition = position
             }
-        })
+            notifyDataSetChanged()
+        }
         if(selectedPosition == position)
             rowView.findViewById<ConstraintLayout>(R.id.song_details_layout).visibility = View.VISIBLE
         else
