@@ -1,7 +1,6 @@
 package com.badkrist.euroscorer
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.badkrist.euroscorer.model.Song
@@ -9,9 +8,6 @@ import com.badkrist.euroscorer.service.FireBaseServices
 import com.badkrist.euroscorer.utils.Utils
 import com.google.android.youtube.player.YouTubeStandalonePlayer
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import org.json.JSONArray
@@ -19,13 +15,19 @@ import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
-class MainActivity : AppCompatActivity()  {
+class MainActivity : AppCompatActivity(), CoroutineScope {
+
+    private val supervisorJob = SupervisorJob()
+    override val coroutineContext = Dispatchers.Main + supervisorJob
+
     var TAG = "MainActivity"
-    private lateinit var idToken: String
     private lateinit var userCountryCode: String
-    var songList: List<Song> = ArrayList();
+    private var songList = listOf<Song>()
     private var totalCount: Int = 0
     private lateinit var service: FireBaseServices
 
@@ -33,20 +35,34 @@ class MainActivity : AppCompatActivity()  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        sendButton.setOnClickListener { sendVote() }
         service = Retrofit.Builder()
             .baseUrl("https://us-central1-eurovision2020-ea486.cloudfunctions.net/api/v1/")
             .addConverterFactory(MoshiConverterFactory.create().asLenient())
             .build()
             .create(FireBaseServices::class.java)
 
-        retrieveData()
-    }
-    fun adaptSongsLayout() {
-        runOnUiThread {
-            val adapter = SongAdapter(this, songList as ArrayList)
-            songsLayout.adapter = adapter
+        sendButton.setOnClickListener {
+            launch {
+                sendVote()
+                Toast.makeText(this@MainActivity, R.string.vote_saved, Toast.LENGTH_LONG)
+            }
         }
+
+        val mUser = FirebaseAuth.getInstance().currentUser
+        userCountryCode = Utils.getCountryCodeFromPhoneNumber(mUser!!.phoneNumber!!)
+
+        refreshSongs()
+    }
+
+    private fun refreshSongs() = launch {
+        songList = fetchSongs()
+        adaptSongsLayout()
+        updateTotalCounter()
+    }
+
+    fun adaptSongsLayout() {
+        val adapter = SongAdapter(this, songList as ArrayList)
+        songsLayout.adapter = adapter
     }
 
     fun updateTotalCounter() {
@@ -59,11 +75,8 @@ class MainActivity : AppCompatActivity()  {
             plurial = "s"
         }
         totalCount = count
-        runOnUiThread {
-            totalCounter.text = getString(R.string.total_counter_label, count.toString(), plurial)
-            sendButton.isEnabled = totalCount < 20
-
-        }
+        totalCounter.text = getString(R.string.total_counter_label, count.toString(), plurial)
+        sendButton.isEnabled = totalCount < 20
     }
 
     fun getTotalCount(): Int {
@@ -78,65 +91,41 @@ class MainActivity : AppCompatActivity()  {
         startActivity(intent);
     }
 
-    private fun retrieveData() {
-        val mUser = FirebaseAuth.getInstance().currentUser
-        userCountryCode = Utils.getCountryCodeFromPhoneNumber(mUser!!.phoneNumber!!)
-        Log.i(TAG, "userCountryCode: " + userCountryCode)
-        mUser!!.getIdToken(true)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    idToken = task.result!!.token!!
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val songs = service.retrieveSongs()
-                        try {
-                            songList = songs.body()!!
-                            try {
-                                val votes = service.retrieveVote(idToken)
-                                Log.i(TAG, votes.code().toString())
-                                if (votes.code() == 200) {
-                                    for (song: Song in songList) {
-                                        song.vote = votes.body()!!.votes!!.count { it.equals(song.country!!.countryCode) }
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                Log.i(TAG, e.message)
-                            }
-                        } catch (e: Exception) {
-                            Log.i(TAG, e.message)
-                        }
-                        adaptSongsLayout()
-                        updateTotalCounter()
-                    }
-
-                } else {
-                    Log.e(TAG, task.exception.toString())
-                }
-            }
+    private suspend fun fetchSongs(): List<Song> = withContext(Dispatchers.IO) {
+        val songs = service.retrieveSongs().body() ?: emptyList()
+        val token = fetchToken()
+        val votes = service.retrieveVote(token).body()?.votes ?: emptyList()
+        songs.forEach { s -> s.vote = votes.count { it == s.country?.countryCode } }
+        songs
     }
 
-    fun sendVote() {
-        if(idToken != null) {
-            var bodyJson = JSONObject()
-            var votes = JSONArray()
-            for (song: Song in songList) {
-                if(song.vote > 0) {
-                    for (x in 1..song.vote) {
-                        votes.put(song.country!!.countryCode!!)
-                    }
-                }
+    private var cachedToken: String? = null
+    private suspend fun fetchToken() : String? {
+        return if (cachedToken != null) cachedToken else suspendCoroutine { continuation ->
+            FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.addOnCompleteListener {
+                cachedToken = it.result?.token
+                continuation.resume(cachedToken)
             }
-            bodyJson.put("votes", votes)
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    var body = RequestBody.create(MediaType.parse("application/json"), bodyJson.toString())
-                    var sendVote = service.sendVote(idToken, body)
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, R.string.vote_saved, Toast.LENGTH_LONG)
-                    }
-                } catch (e: Exception) {
-                    Log.i(TAG, e.message)
+        }
+    }
+
+    private suspend fun sendVote(): Boolean = withContext(Dispatchers.IO) {
+        val token = fetchToken()
+        if (token == null) {
+            return@withContext false
+        }
+        var bodyJson = JSONObject()
+        var votes = JSONArray()
+        for (song: Song in songList) {
+            if(song.vote > 0) {
+                for (x in 1..song.vote) {
+                    votes.put(song.country!!.countryCode!!)
                 }
             }
         }
+        bodyJson.put("votes", votes)
+        var body = RequestBody.create(MediaType.parse("application/json"), bodyJson.toString())
+        var sendVote = service.sendVote(token, body)
+        return@withContext true
     }
 }
