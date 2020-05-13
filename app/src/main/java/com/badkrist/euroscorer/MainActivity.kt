@@ -25,33 +25,30 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     private val supervisorJob = SupervisorJob()
     override val coroutineContext = Dispatchers.Main + supervisorJob
 
-    var TAG = "MainActivity"
     private lateinit var userCountryCode: String
     private var songList = listOf<Song>()
     private var totalCount: Int = 0
-    private lateinit var service: FireBaseServices
+    private val service: FireBaseServices = Retrofit.Builder()
+        .baseUrl("https://us-central1-eurovision2020-ea486.cloudfunctions.net/api/v1/")
+        .addConverterFactory(MoshiConverterFactory.create().asLenient())
+        .build()
+        .create(FireBaseServices::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        service = Retrofit.Builder()
-            .baseUrl("https://us-central1-eurovision2020-ea486.cloudfunctions.net/api/v1/")
-            .addConverterFactory(MoshiConverterFactory.create().asLenient())
-            .build()
-            .create(FireBaseServices::class.java)
-
-        sendButton.setOnClickListener {
-            launch {
-                sendVote()
-                Toast.makeText(this@MainActivity, R.string.vote_saved, Toast.LENGTH_LONG)
-            }
-        }
+        sendButton.setOnClickListener { sendVoteTapped() }
 
         val mUser = FirebaseAuth.getInstance().currentUser
         userCountryCode = Utils.getCountryCodeFromPhoneNumber(mUser!!.phoneNumber!!)
 
         refreshSongs()
+    }
+
+    private fun sendVoteTapped() = launch {
+        sendVote()
+        Toast.makeText(this@MainActivity, R.string.vote_saved, Toast.LENGTH_LONG).show()
     }
 
     private fun refreshSongs() = launch {
@@ -66,25 +63,17 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     }
 
     fun updateTotalCounter() {
-        var count = 20
-        for(song: Song in songList){
-            count -= song.vote
-        }
-        var plurial = ""
-        if(count > 1) {
-            plurial = "s"
-        }
-        totalCount = count
-        totalCounter.text = getString(R.string.total_counter_label, count.toString(), plurial)
+        val count = 20
+        val totalVotesGiven = songList.map { it.vote }.reduce { sum, element -> sum + element }
+        val plural = if(totalVotesGiven > 1) "s" else ""
+        totalCount = count - totalVotesGiven
+        totalCounter.text = getString(R.string.total_counter_label, count.toString(), plural)
         sendButton.isEnabled = totalCount < 20
     }
 
-    fun getTotalCount(): Int {
-        return totalCount
-    }
-    fun getUserCountryCode(): String {
-        return userCountryCode
-    }
+    fun getTotalCount(): Int = totalCount
+
+    fun getUserCountryCode(): String = userCountryCode
 
     fun startVideoPlayer(link: String?) {
         val intent = YouTubeStandalonePlayer.createVideoIntent(this, getString(R.string.YOUTUBE_API_KEY), link);
@@ -114,18 +103,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         if (token == null) {
             return@withContext false
         }
-        var bodyJson = JSONObject()
-        var votes = JSONArray()
-        for (song: Song in songList) {
-            if(song.vote > 0) {
-                for (x in 1..song.vote) {
-                    votes.put(song.country!!.countryCode!!)
-                }
-            }
+        val votes = songList.fold(emptyList<String>()) { acc, song ->
+            acc + 0.until(song.vote).mapNotNull { song.country?.countryCode }
         }
-        bodyJson.put("votes", votes)
-        var body = RequestBody.create(MediaType.parse("application/json"), bodyJson.toString())
-        var sendVote = service.sendVote(token, body)
+        val bodyJson = JSONObject()
+        bodyJson.put("votes", JSONArray(votes))
+        val body = RequestBody.create(MediaType.parse("application/json"), bodyJson.toString())
+        service.sendVote(token, body)
         return@withContext true
     }
 }
