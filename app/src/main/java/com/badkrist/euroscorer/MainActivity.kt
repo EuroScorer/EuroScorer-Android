@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         val totalVotesGiven = songList.map { it.vote }.reduce { sum, element -> sum + element }
         val plural = if(totalVotesGiven > 1) "s" else ""
         totalCount = count - totalVotesGiven
-        totalCounter.text = getString(R.string.total_counter_label, count.toString(), plural)
+        totalCounter.text = getString(R.string.total_counter_label, totalCount.toString(), plural)
         sendButton.isEnabled = totalCount < 20
     }
 
